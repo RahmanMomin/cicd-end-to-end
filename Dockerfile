@@ -1,9 +1,10 @@
 FROM python:3
 
-# Install system dependencies including distutils
+# Install system dependencies, including distutils for Python 3.10+
 RUN apt-get update && apt-get install -y \
     build-essential \
     python3-dev \
+    python3-distutils \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Django
