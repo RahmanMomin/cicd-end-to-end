@@ -1,11 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'ubuntu:latest' // Use a Python-based Docker image
-            args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // Mount Docker socket
-        }
-    }
-
+    agent any 
     environment {
         IMAGE_TAG = "${BUILD_NUMBER}" // Image tag for Docker
     }
