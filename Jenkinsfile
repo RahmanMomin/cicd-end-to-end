@@ -15,7 +15,7 @@ pipeline {
             steps {
                 sh '''
                 echo 'Building Docker Image'
-                docker build -t mominrahman/cicd-e2e:${BUILD_NUMBER} .
+                docker build -t mominrahman/todo-app:${BUILD_NUMBER} .
                 '''
             }
         }
