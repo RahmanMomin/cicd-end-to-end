@@ -47,6 +47,7 @@ pipeline {
                         echo 'Updating Kubernetes Manifest'
                         cd deploy
                         sed -i "s/32/${BUILD_NUMBER}/g" deploy.yaml
+                        cat deploy.yaml 
                         echo 'Committing and Pushing Manifest Changes'
                         git add deploy.yaml
                         git commit -m "Updated deploy.yaml with image tag ${BUILD_NUMBER}"
