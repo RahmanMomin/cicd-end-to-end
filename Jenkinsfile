@@ -26,7 +26,7 @@ pipeline {
                     docker.withRegistry('', 'docker-cred') { // Use your Docker credentials ID
                         sh '''
                         echo 'Pushing Docker Image to Docker Hub'
-                        docker push mominrahman/cicd-e2e:${BUILD_NUMBER}
+                        docker push mominrahman/todo-app:${BUILD_NUMBER}
                         '''
                     }
                 }
