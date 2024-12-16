@@ -1,71 +1,66 @@
 pipeline {
-    
     agent {
-    docker {
-      image 'python:3.11-slim'
-      args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // mount Docker socket to access the host's Docker daemon
+        docker {
+            image 'python:3.11-slim' // Use a Python-based Docker image
+            args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // Mount Docker socket
+        }
     }
-  }
-    
+
     environment {
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        IMAGE_TAG = "${BUILD_NUMBER}" // Image tag for Docker
     }
-    
+
     stages {
-        
-        stage('Checkout'){
-           steps {
+        stage('Checkout Repository') {
+            steps {
                 git branch: 'main', url: 'https://github.com/RahmanMomin/cicd-end-to-end'
-           }
-        }
-
-        stage('Build Docker'){
-            steps{
-                script{
-                    sh '''
-                    echo 'Buid Docker Image'
-                    docker build -t mominrahman/cicd-e2e:${BUILD_NUMBER} .
-                    '''
-                }
             }
         }
 
-        stage('Push the artifacts'){
-           steps{
-                script{
-                     docker.withRegistry('', 'docker-cred') { // Replace 'docker-credentials-id' with your Jenkins credentials ID
+        stage('Build Docker Image') {
+            steps {
                 sh '''
-                echo 'Push to Repo'
-                docker push mominrahman/cicd-e2e:${BUILD_NUMBER}
+                echo 'Building Docker Image'
+                docker build -t mominrahman/cicd-e2e:${BUILD_NUMBER} .
                 '''
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('', 'docker-cred') { // Use your Docker credentials ID
+                        sh '''
+                        echo 'Pushing Docker Image to Docker Hub'
+                        docker push mominrahman/cicd-e2e:${BUILD_NUMBER}
+                        '''
+                    }
                 }
             }
         }
-        
-        stage('Checkout K8S manifest SCM'){
+
+        stage('Checkout K8S Manifest Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/RahmanMomin/cicd-end-to-end/deploy'
+                git branch: 'main', url: 'https://github.com/RahmanMomin/cicd-end-to-end'
             }
         }
-        
-        stage('Update K8S manifest & push to Repo'){
+
+        stage('Update K8S Manifest and Push Changes') {
             steps {
-                script{
+                script {
                     withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
                         sh '''
+                        echo 'Updating Kubernetes Manifest'
                         cd deploy
-                        cat deploy.yaml
                         sed -i "s/32/${BUILD_NUMBER}/g" deploy.yaml
-                        cat deploy.yaml 
+                        echo 'Committing and Pushing Manifest Changes'
                         git add deploy.yaml
-                        git commit -m 'Updated the deploy yaml | Jenkins Pipeline'
-                        git remote -v
-                        git push https://github.com/RahmanMomin/cicd-end-to-end.git HEAD:main
-                        '''                        
+                        git commit -m "Updated deploy.yaml with image tag ${BUILD_NUMBER}"
+                        git push https://${GITHUB_TOKEN}@github.com/RahmanMomin/cicd-end-to-end.git HEAD:main
+                        '''
                     }
                 }
             }
         }
     }
-}
 }
